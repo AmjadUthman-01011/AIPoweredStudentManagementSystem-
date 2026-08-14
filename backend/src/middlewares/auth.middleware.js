@@ -1,37 +1,39 @@
 const jwt = require("jsonwebtoken");
 
-const authenticate = (req, res, next)=>{
-    try{
+const authenticate = (req, res, next) => {
+    try {
         const authHeader = req.headers.authorization;
 
-        if(!authHeader){
+        if (!authHeader) {
             return res.status(401).json({
-                success:false,
-                message:"Authentication Required"
-            })
-        }
-        
-        const parts = authHeader.split(" ");
-
-        if(parts[0]!=="Bearer" || parts.length !== 2){
-            return res.status(401).json({
-                success:false,
-                message:"Invalid authorization format",
-            })
+                success: false,
+                message: "Authentication required"
+            });
         }
 
-        const token = parts[1];
+        const [scheme, token] = authHeader.split(" ");
 
-        const decode = jwt.verify(token, process.env.JWT_SECRET);
+        if (scheme !== "Bearer" || !token) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid authorization format"
+            });
+        }
+
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
 
         req.user = {
-            userId : decode.userId,
-            role : decode.role,
-        }
+            userId: decoded.userId,
+            role: decoded.role
+        };
 
         next();
 
-    }catch(error){
+    } catch (error) {
+
         if (error.name === "TokenExpiredError") {
             return res.status(401).json({
                 success: false,
@@ -46,8 +48,11 @@ const authenticate = (req, res, next)=>{
             });
         }
 
-        next(error);
+        return res.status(401).json({
+            success: false,
+            message: "Authentication failed"
+        });
     }
-}
+};
 
 module.exports = authenticate;

@@ -60,6 +60,14 @@ const login = async (req, res, next)=>{
     }
 }
 
+const logout = async (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Logout successful"
+    });
+};
+
+// test
 const me = async (req, res) => {
     res.status(200).json({
         success: true,
@@ -68,4 +76,28 @@ const me = async (req, res) => {
     });
 };
 
-module.exports = {register, login, me};
+const adminTest = async (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Welcome Admin",
+        user: req.user
+    });
+};
+
+const teacherTest = async (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Welcome Teacher",
+        user: req.user
+    });
+};
+
+const studentTest = async (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Welcome Student",
+        user: req.user
+    });
+};
+
+module.exports = {register, login, logout, me, adminTest, teacherTest, studentTest};
