@@ -2,7 +2,7 @@ const authService = require("../services/auth.service");
 
 const register = async (req, res, next)=>{
     try{
-        const {email, password} = req.body;
+        const {email, password, lastName, firstName, dob, address, phone} = req.body;
 
         if(!email || !password){
             return res.status(401).json({
@@ -12,7 +12,14 @@ const register = async (req, res, next)=>{
         }
 
         const newUserResult = await authService.register({
-            email, password, role:"STUDENT"
+            email,
+            password,
+            role:"STUDENT",
+            firstName,
+            lastName,
+            dob,
+            phone,
+            address
         });
 
         if(!newUserResult){
@@ -67,37 +74,4 @@ const logout = async (req, res) => {
     });
 };
 
-// test
-const me = async (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Authentication successful",
-        user: req.user
-    });
-};
-
-const adminTest = async (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Welcome Admin",
-        user: req.user
-    });
-};
-
-const teacherTest = async (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Welcome Teacher",
-        user: req.user
-    });
-};
-
-const studentTest = async (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Welcome Student",
-        user: req.user
-    });
-};
-
-module.exports = {register, login, logout, me, adminTest, teacherTest, studentTest};
+module.exports = {register, login, logout};

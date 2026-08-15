@@ -1,9 +1,16 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const prisma = require("../config/prisma");
-const { success } = require("zod");
 
-const register = async ({ email, password, role }) => {
+const register = async ({
+    email,
+    password,
+    firstName,
+    lastName, 
+    dob,
+    address,
+    phone,
+    }) => {
     const existingUser = await prisma.user.findUnique({
         where: { email }
     });
@@ -14,18 +21,50 @@ const register = async ({ email, password, role }) => {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const user = await prisma.user.create({
-        data: {
-            email,
-            password: hashedPassword,
-            role: role || "STUDENT"
-        }
+    const result = await prisma.$transaction(async (tx) => {
+
+        // Create User
+        const user = await tx.user.create({
+            data: {
+                email,
+                password: hashedPassword,
+                role: "STUDENT"
+            }
+        });
+
+        // Create Student profile
+        const student = await tx.student.create({
+            data: {
+                userId: user.id,
+                studentCode: `STU-${user.id}`,
+                firstName,
+                lastName,
+                dateOfBirth:dob,
+                phone:phone,
+                address: address
+
+            }
+        });
+
+        return {
+            user,
+            student
+        };
     });
 
     return {
-        id: user.id,
-        email: user.email,
-        role: user.role
+        id: result.user.id,
+        email: result.user.email,
+        role: result.user.role,
+        student: {
+            id: result.student.id,
+            studentCode: result.student.studentCode,
+            firstName: result.student.firstName,
+            lastName: result.student.lastName,
+            dateOfBirth:result.dateOfBirth,
+            phone:result.phone,
+            address: result.address
+        }
     };
 };
 
@@ -77,4 +116,10 @@ const login = async ({ email, password }) => {
     };
 };
 
+const logout = (req, res)=>{
+    return res.status(201).json({
+        success:true,
+        message:"Logout successful"
+    })
+}
 module.exports = {register, login};

@@ -13,4 +13,5 @@ router.use("/student", studentRoutes);
 //router.use("/database", databaseRoutes);
 
 router.use("/auth", authRoutes);
+
 module.exports = router;
