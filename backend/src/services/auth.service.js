@@ -82,6 +82,10 @@ const login = async ({ email, password }) => {
         throw new Error("Invalid email or password");
     }
 
+    if (!user.isActive) {
+        throw new Error("Account is deactivated");
+    }
+
     // 3. Compare password with hashed password
     const passwordMatch = await bcrypt.compare(
         password,
