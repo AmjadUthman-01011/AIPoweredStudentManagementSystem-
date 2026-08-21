@@ -36,7 +36,6 @@ const register = async ({
         const student = await tx.student.create({
             data: {
                 userId: user.id,
-                studentCode: `STU-${user.id}`,
                 firstName,
                 lastName,
                 dateOfBirth:dob,
@@ -58,7 +57,6 @@ const register = async ({
         role: result.user.role,
         student: {
             id: result.student.id,
-            studentCode: result.student.studentCode,
             firstName: result.student.firstName,
             lastName: result.student.lastName,
             dateOfBirth:result.dateOfBirth,

@@ -6,6 +6,9 @@ const studentRoutes = require("./student.route");
 const userRoutes = require("./user.route");
 const teacherRoutes = require("./teacher.route");
 const courseRoutes = require("./course.route");
+const gradeRoutes = require("./grade.route");
+const attendanceRoutes = require("./attendance.route");
+const notificationRoutes = require("./notification.route");
 
 //const databaseRoutes = require("./database.route");
 
@@ -17,8 +20,8 @@ router.use("/students", studentRoutes);
 router.use("/users", userRoutes);
 router.use("/teachers", teacherRoutes);
 router.use("/courses", courseRoutes );
+router.use("/grades", gradeRoutes );
+router.use("/attendance", attendanceRoutes );
+router.use("/anotifications", notificationRoutes);
 //router.use("/database", databaseRoutes);
-
-
-
 module.exports = router;
