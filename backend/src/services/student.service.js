@@ -5,7 +5,6 @@ const getAllStudents = async ({
     limit = 10,
     firstName,
     lastName,
-    studentCode,
     email,
     phone
     }) => {

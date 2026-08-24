@@ -2,7 +2,7 @@ const express = require("express");
 const userController = require("../controllers/user.controller");
 const authenticate = require("../middlewares/auth.middleware");
 const authorize = require("../middlewares/role.middleware");
-const validate = require("../middlewares/queryValidator.middleware");
+const validate = require("../middlewares/validator.middleware");
 const {
     idParamSchema,
     getUsersQuerySchema,

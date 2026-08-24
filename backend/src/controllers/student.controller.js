@@ -8,7 +8,6 @@ const getStudents = async (req, res, next) => {
             limit,
             firstName,
             lastName,
-            studentCode,
             email,
             phone
         } = req.query;
