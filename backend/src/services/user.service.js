@@ -1,7 +1,7 @@
 const prisma = require("../config/prisma");
 const bcrypt = require("bcryptjs")
 
-const getAllUsers = async ({ page = 1, limit = 10 }) => {
+const getAllUsers = async ({ page , limit }) => {
 
     page = Number(page);
     limit = Number(limit);
@@ -56,7 +56,7 @@ const getAllUsers = async ({ page = 1, limit = 10 }) => {
 };
 
 const getUserById = async (id) => {
-    return prisma.user.findUnique({
+    const result = await prisma.user.findUnique({
         where: {
             id: Number(id)
         },
@@ -72,7 +72,6 @@ const getUserById = async (id) => {
             student: {
                 select: {
                     id: true,
-                    studentCode: true,
                     firstName: true,
                     lastName: true,
                     dateOfBirth: true,
@@ -90,15 +89,16 @@ const getUserById = async (id) => {
             }
         }
     });
+    if(!result){
+        throw new Error("The user is not exist")
+    }
+
+    return result;
 };
 
 
 const createUser = async (data) => {
 
-    // Validate role
-    if (!["STUDENT", "TEACHER"].includes(data.role)) {
-        throw new Error("Invalid role");
-    }
     const {email, password, role, isActive} = data;
     // Check existing email
     const existingUser = await prisma.user.findUnique({
@@ -173,12 +173,7 @@ const createUser = async (data) => {
 
 const updateUser = async (id, data) => {
     
-
     const userId = Number(id);
-
-    if (!Number.isInteger(userId)) {
-        throw new Error("Invalid user ID");
-    }
 
     // Find user
     const existingUser = await prisma.user.findUnique({
@@ -190,26 +185,24 @@ const updateUser = async (id, data) => {
             teacher: true
         }
     });
-    //console.log( existingUser);
-    //return;
 
     if (!existingUser) {
         throw new Error("User not found");
     }
 
-    // Check email uniqueness
-    if (data.email && data.email !== existingUser.email) {
-
-        const emailExists = await prisma.user.findUnique({
-            where: {
-                email: data.email
+        if (data.email) {
+            const emailExists = await prisma.user.findFirst({
+                where: {
+                    email: data.email,
+                    NOT: { id: userId }
+                }
+            });
+        
+            if (emailExists) {
+                throw new Error("Email already exists");
             }
-        });
-
-        if (emailExists) {
-            throw new Error("Email already exists");
         }
-    }
+    
 
     const result = await prisma.$transaction(async (tx) => {
 

@@ -1,9 +1,10 @@
 const userService = require("../services/user.service");
+const validator = require("../validators/authValidator");
 
 const getUsers = async (req, res, next) => {
     try {
 
-        const { page = 1, limit = 10 } = req.query;
+        const { page, limit} = req.query;
 
         const result = await userService.getAllUsers({
             page,
@@ -26,18 +27,17 @@ const getUser = async (req, res, next) => {
             req.params.id
         );
 
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-
         res.status(200).json({
             success: true,
             user
         });
     } catch (error) {
+        if(error.message === "The user is not exist"){
+            res.status(404).json({
+            success: false,
+            message:error.message
+        });
+        }
         next(error);
     }
 };
@@ -55,6 +55,13 @@ const createUser = async (req, res, next) => {
         });
 
     } catch (error) {
+        if (error.message === "User already exists") {
+            return res.status(409).json({
+                success: false,
+                message: error.message
+            });
+        }
+
         next(error);
     }
 };
@@ -74,6 +81,18 @@ const updateUser = async (req, res, next) => {
         });
 
     } catch (error) {
+        if(error.message == "User not found"){
+            res.status(404).json({
+            success: false,
+            message: error.message,
+            });
+        }
+        if(error.message == "Email already exists"){
+            res.status(401).json({
+            success: false,
+            message: error.message,
+            });
+        }
         next(error);
     }
 };
@@ -97,6 +116,12 @@ const deleteUser = async (req, res, next) => {
         });
 
     } catch (error) {
+        if(error.message === "User not found"){
+            res.status(404).json({
+            success: false,
+            message: error.message
+        });
+        }
         next(error);
     }
 };
@@ -105,13 +130,6 @@ const searchUsers = async (req, res, next) => {
     try {
 
         const { q } = req.query;
-
-        if (!q || !q.trim()) {
-            return res.status(400).json({
-                success: false,
-                message: "Search query is required"
-            });
-        }
 
         const users = await userService.searchUsers(q);
 
@@ -130,13 +148,6 @@ const getUsersByRole = async (req, res, next) => {
     try {
 
         const { role } = req.query;
-
-        if (!role) {
-            return res.status(400).json({
-                success: false,
-                message: "Role is required"
-            });
-        }
 
         const users = await userService.getUsersByRole(
             role.toUpperCase()
@@ -165,13 +176,6 @@ const updateUserStatus = async (req, res, next) => {
     try {
 
         const { isActive } = req.body;
-
-        if (typeof isActive !== "boolean") {
-            return res.status(400).json({
-                success: false,
-                message: "isActive must be a boolean"
-            });
-        }
 
         const user = await userService.updateUserStatus(
             req.params.id,
@@ -283,13 +287,6 @@ const updateUserRole = async (req, res, next) => {
     try {
 
         const { role } = req.body;
-
-        if (!role) {
-            return res.status(400).json({
-                success: false,
-                message: "Role is required"
-            });
-        }
 
         const user = await userService.updateUserRole(
             req.params.id,

@@ -1,9 +1,19 @@
 const express = require("express");
-
 const userController = require("../controllers/user.controller");
-
 const authenticate = require("../middlewares/auth.middleware");
 const authorize = require("../middlewares/role.middleware");
+const validate = require("../middlewares/queryValidator.middleware");
+const {
+    idParamSchema,
+    getUsersQuerySchema,
+    searchUsersQuerySchema,
+    getUsersByRoleQuerySchema,
+    updateUserStatusBodySchema,
+    updatePasswordBodySchema,
+    updateUserRoleBodySchema,
+    createUserBodySchema,
+    updateUserBodySchema
+} = require("../validators/user.validator");
 
 const router = express.Router();
 
@@ -16,6 +26,7 @@ router.get(
     "/",
     authenticate,
     authorize("ADMIN"),
+    validate(getUsersQuerySchema, "query"),
     userController.getUsers
 );
 
@@ -28,6 +39,7 @@ router.get(
     "/search",
     authenticate,
     authorize("ADMIN"),
+    validate(searchUsersQuerySchema, "query"),
     userController.searchUsers
 );
 
@@ -39,7 +51,8 @@ router.get(
 router.get(
     "/filter",
     authenticate,
-    authorize("ADMIN"),
+    //authorize("ADMIN"),
+    validate(getUsersByRoleQuerySchema, "query"),
     userController.getUsersByRole
 );
 
@@ -47,6 +60,8 @@ router.patch(
     "/:id/password",
     authenticate,
     authorize("ADMIN"),
+    validate(idParamSchema, "params"),
+    validate(updatePasswordBodySchema, "body"),
     userController.updatePassword
 );
 
@@ -54,8 +69,11 @@ router.patch(
     "/:id/role",
     authenticate,
     authorize("ADMIN"),
+    validate(idParamSchema, "params"),
+    validate(updateUserRoleBodySchema, "body"),
     userController.updateUserRole
 );
+
 // ===============================
 // UPDATE the activasion
 // PATCH /api/users/:id/status
@@ -65,6 +83,8 @@ router.patch(
     "/:id/status",
     authenticate,
     authorize("ADMIN"),
+    validate(idParamSchema, "params"),
+    validate(updateUserStatusBodySchema, "body"),
     userController.updateUserStatus
 );
 
@@ -77,6 +97,7 @@ router.get(
     "/:id",
     authenticate,
     authorize("ADMIN"),
+    validate(idParamSchema, "params"),
     userController.getUser
 );
 
@@ -89,6 +110,7 @@ router.post(
     "/",
     authenticate,
     authorize("ADMIN"),
+    validate(createUserBodySchema, "body"), // still need this schema
     userController.createUser
 );
 
@@ -101,6 +123,8 @@ router.patch(
     "/:id",
     authenticate,
     authorize("ADMIN"),
+    validate(idParamSchema, "params"),
+    validate(updateUserBodySchema, "body"),
     userController.updateUser
 );
 
@@ -112,7 +136,8 @@ router.patch(
 router.delete(
     "/:id",
     authenticate,
-    authorize("ADMIN"),
+    //authorize("ADMIN"),
+    validate(idParamSchema, "params"),
     userController.deleteUser
 );
 

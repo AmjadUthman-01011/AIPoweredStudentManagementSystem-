@@ -2,54 +2,51 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const prisma = require("../config/prisma");
 
-const register = async ({
-    email,
-    password,
-    firstName,
-    lastName, 
-    dob,
-    address,
-    phone,
-    }) => {
+const register = async (data) => {
+
     const existingUser = await prisma.user.findUnique({
-        where: { email }
+        where: { email: data.email }
     });
 
     if (existingUser) {
         throw new Error("User already exists");
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(data.password, 12);
 
-    const result = await prisma.$transaction(async (tx) => {
+    let result;
+    try {
+        result = await prisma.$transaction(async (tx) => {
 
-        // Create User
-        const user = await tx.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                role: "STUDENT"
-            }
+            // Create User
+            const user = await tx.user.create({
+                data: {
+                    email: data.email,
+                    password: hashedPassword,
+                    role: "STUDENT"
+                }
+            });
+
+            // Create Student profile
+            const student = await tx.student.create({
+                data: {
+                    userId: user.id,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    dateOfBirth: data.dob,
+                    phone: data.phone,
+                    address: data.address
+                }
+            });
+
+            return { user, student };
         });
-
-        // Create Student profile
-        const student = await tx.student.create({
-            data: {
-                userId: user.id,
-                firstName,
-                lastName,
-                dateOfBirth:dob,
-                phone:phone,
-                address: address
-
-            }
-        });
-
-        return {
-            user,
-            student
-        };
-    });
+    } catch (err) {
+        if (err.code === "P2002") {
+            throw new Error("User already exists");
+        }
+        throw err;
+    }
 
     return {
         id: result.user.id,
@@ -59,19 +56,19 @@ const register = async ({
             id: result.student.id,
             firstName: result.student.firstName,
             lastName: result.student.lastName,
-            dateOfBirth:result.dateOfBirth,
-            phone:result.phone,
-            address: result.address
+            dateOfBirth: result.student.dateOfBirth,
+            phone: result.student.phone,
+            address: result.student.address
         }
     };
 };
 
-const login = async ({ email, password }) => {
+const login = async (data) => {
 
     // 1. Find the user
     const user = await prisma.user.findUnique({
         where: {
-            email
+            email:data.email
         }
     });
 
@@ -86,7 +83,7 @@ const login = async ({ email, password }) => {
 
     // 3. Compare password with hashed password
     const passwordMatch = await bcrypt.compare(
-        password,
+        data.password,
         user.password
     );
 
@@ -124,4 +121,4 @@ const logout = (req, res)=>{
         message:"Logout successful"
     })
 }
-module.exports = {register, login};
+module.exports = {register, login, logout};
